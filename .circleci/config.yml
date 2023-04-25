@@ -15,5 +15,6 @@ workflows:
   build:
     jobs:
       - cypress/run:
+          cypress-command: npm test
           executor: custom
           build: "npm run build"
