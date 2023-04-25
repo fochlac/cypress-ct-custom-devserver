@@ -4,17 +4,10 @@ version: 2.1
 
 orbs:
   cypress: cypress-io/cypress@3.1.1
-executors:
-  custom:
-    docker:
-      - image: "cypress/base:16.18.1"
-    environment:
-      TZ: "Europe/Berlin"
 
 workflows:
   build:
     jobs:
       - cypress/run:
           cypress-command: npm test
-          executor: custom
-          build: "npm run build"
+          post-install: "npm run build"
