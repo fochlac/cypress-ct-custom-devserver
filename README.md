@@ -1,3 +1,5 @@
+![CircleCI](https://img.shields.io/circleci/build/github/fochlac/cypress-ct-custom-devserver) ![npm](https://img.shields.io/npm/v/cypress-ct-custom-devserver)
+
 # cypress-ct-custom-devserver
 A helper for setting up Cypress devServers for component testing.
 
