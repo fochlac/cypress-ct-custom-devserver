@@ -1,0 +1,47 @@
+{
+  "name": "cypress-ct-custom-devserver",
+  "version": "1.0.0",
+  "description": "A helper to simplify the api for creating a custom dev-server for cypress.",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "files": [
+    "dist/",
+    "template/"
+  ],
+  "scripts": {
+    "build": "npm run lint && tsc",
+    "lint": "eslint --ext .ts --fix src/**/*.ts",
+    "test": "cypress run --component"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/fochlac/cypress-ct-custom-devserver.git"
+  },
+  "keywords": [
+    "cypress",
+    "component test",
+    "devServer"
+  ],
+  "author": "Florian Riedel",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/fochlac/cypress-ct-custom-devserver/issues"
+  },
+  "homepage": "https://github.com/fochlac/cypress-ct-custom-devserver#readme",
+  "dependencies": {
+    "body-parser": "^1.20.2",
+    "express": "^4.18.2"
+  },
+  "devDependencies": {
+    "@types/express": "^4.17.17",
+    "@types/node": "^18.14.2",
+    "@typescript-eslint/eslint-plugin": "^5.54.0",
+    "@typescript-eslint/parser": "^5.54.0",
+    "cypress": "^12.10.0",
+    "esbuild": "^0.17.18",
+    "eslint": "^8.35.0",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "typescript": "^5.0.2"
+  }
+}

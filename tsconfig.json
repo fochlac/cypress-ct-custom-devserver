@@ -1,0 +1,16 @@
+{
+    "compilerOptions": {
+        "target": "es5",
+        "module": "commonjs",
+        "lib": ["es5", "es6"],
+        "skipLibCheck": true,
+        "outDir": "dist",
+        "rootDir": "src",
+        "moduleResolution": "node",
+        "typeRoots": [ "node_modules/@types", "./types", "node_modules/cypress/types" ],
+        "types": ["Cypress", "CustomDevServer"],
+        "esModuleInterop": true,
+        "composite": true
+    },
+    "include": ["src/**/*.ts"]
+}
