@@ -33,11 +33,11 @@ export default defineConfig({
       ctx.watch()
 
       return {
-          loadTest: async (spec, { loadBundle, loadSupportFile, injectHTML }) => {
+          loadTest: async (spec, { loadBundle, injectHTML }) => {
               const testPath = path.resolve(path.join(outdir, spec.relative.replace(spec?.fileExtension, '.js')))
               if (supportFile) {
                 const supportPath = path.resolve(path.join(outdir, supportFile?.relative.replace(supportFile.fileExtension, '.js')))
-                loadSupportFile(supportPath)
+                loadBundle(supportPath)
               }
 
               loadBundle(testPath)
