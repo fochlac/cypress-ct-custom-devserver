@@ -8,7 +8,7 @@
         "rootDir": "src",
         "moduleResolution": "node",
         "typeRoots": [ "node_modules/@types", "./types", "node_modules/cypress/types" ],
-        "types": ["Cypress", "CustomDevServer"],
+        "types": ["cypress", "CustomDevServer"],
         "esModuleInterop": true,
         "composite": true
     },
