@@ -9,7 +9,7 @@ This library offers a framework to abstract some of the difficulties regarding s
 You will have to take care of setting up the build process for the provided entry points and map the tests to their respective bundles.
 
 ## Installation
-Add the library to devDependencies
+Add the library to your devDependencies
 ```bash
 npm install -D cypress-ct-custom-devserver
 ```

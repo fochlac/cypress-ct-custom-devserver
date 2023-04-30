@@ -18,6 +18,7 @@ export default defineConfig({
           bundle: true,
           target: 'chrome90',
           splitting: true,
+          sourcemap: true,
           plugins: [
               {
                   name: 'watch',

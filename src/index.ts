@@ -10,6 +10,7 @@ const fallbackIndexHtml = `<!DOCTYPE html><html>
 <head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"></head>
 <body><div data-cy-root></div></body>
 </html>`
+const sourceMapRegexp = /\/\/# sourceMappingURL=(.*).map/
 
 export function createCustomDevServer(initBuildCallback: CustomDevServer.InitBuildCallback) {
     const createUrl = (path: string) => {
@@ -108,7 +109,12 @@ export function createCustomDevServer(initBuildCallback: CustomDevServer.InitBui
                 }
                 const {path} = bundleRegistry.get(req.path) ?? {}
                 if (path) {
-                    return res.sendFile(path)
+                    let data = await readFile(path, 'utf8');
+                    if (sourceMapRegexp.test(data)) {
+                        data = data.replace(sourceMapRegexp, `//# sourceMappingURL=${req.path}.map`)
+                    }
+
+                    return res.header('Content-Type', 'application/javascript; charset=UTF-8').send(data)
                 }
             }
             catch(e) {
