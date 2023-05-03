@@ -1,6 +1,6 @@
 {
   "name": "cypress-ct-custom-devserver",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "A helper to simplify the api for creating a custom dev-server for cypress.",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",

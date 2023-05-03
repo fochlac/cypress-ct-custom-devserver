@@ -11,7 +11,7 @@ if (!CypressInstance) {
 const devServerPublicPathRoute = CypressInstance.config('devServerPublicPathRoute')
 
 const fetchSpecData = async () => {
-    const setupInfo = await fetch(`${devServerPublicPathRoute}/scriptInfo`, {
+    const { bundles = [], htmlSnippets = [] } = await fetch(`${devServerPublicPathRoute}/scriptInfo`, {
         method: 'post',
         headers: {
             accept: 'application/json',
@@ -23,8 +23,8 @@ const fetchSpecData = async () => {
     })
         .then((r) => r.json())
     
-    const { bundles = [], htmlSnippets = [] } = setupInfo
     await bundles.reduce((promise, path) => promise.then(() => import(path)), Promise.resolve())
+
     htmlSnippets.forEach((snippet) => {
         const anchor = snippet.anchor || 'head'
         const anchorElement = document.querySelector(anchor)

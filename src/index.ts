@@ -22,25 +22,38 @@ export function createCustomDevServer(initBuildCallback: CustomDevServer.InitBui
 
     return async ({ cypressConfig, specs, devServerEvents }: CustomDevServer.DevServerOptions): Promise<Cypress.ResolvedDevServerConfig> => {
         let started: (port: number) => void
-        let isBuilding = false
+        let isBuilding: false|Promise<void> = false
+        let done = Function.prototype
 
         const app = express()
 
         const buildSetup = await initBuildCallback({
             specs,
+
             supportFile: cypressConfig.supportFile && {
                 absolute: cypressConfig.supportFile,
                 relative: cypressConfig.supportFile.replace(cypressConfig.projectRoot, ''),
                 name: path.basename(cypressConfig.supportFile),
                 fileExtension: path.extname(cypressConfig.supportFile)
             } as CustomDevServer.BrowserSpec,
+
             onBuildComplete: () => {
-                isBuilding = false
                 devServerEvents.emit('dev-server:compile:success')
+                done()
             },
+
             onBuildStart: () => {
-                isBuilding = true
+                if (isBuilding === false) {
+                    isBuilding = new Promise((resolve) => {
+                        done = () => {
+                            resolve()
+                            isBuilding = false
+                            done = Function.prototype
+                        }
+                    })
+                }
             },
+
             serveStatic: (folder, path = '/') => {
                 app.use(path, express.static(folder))
             }
@@ -135,12 +148,15 @@ export function createCustomDevServer(initBuildCallback: CustomDevServer.InitBui
         })
 
         return new Promise(resolve => {
-            started = (port: number) => resolve({ port, close: async (done) => {
-                if (typeof buildSetup.onClose === 'function') {
-                    await buildSetup.onClose()
-                }
-                server.close(done)
-            } })
+            started = (port: number) => resolve({ 
+                port, 
+                close: async (done) => {
+                    if (typeof buildSetup.onClose === 'function') {
+                        await buildSetup.onClose()
+                    }
+                    server.close(done)
+                } 
+            })
         })
     }
 }
