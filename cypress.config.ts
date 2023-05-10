@@ -2,6 +2,7 @@ import { defineConfig } from 'cypress'
 import {BuildOptions, context} from 'esbuild'
 import { createCustomDevServer } from './src/index'
 import path from 'path';
+import { copy } from 'esbuild-plugin-copy'
 
 const outdir = './dist-test'
 
@@ -26,7 +27,15 @@ export default defineConfig({
                       build.onStart(onBuildStart)
                       build.onEnd(onBuildComplete)
                   }
-              }
+              },
+              copy({
+                assets: [
+                  {
+                    from: ['./data/**/*'],
+                    to: ['./data']
+                  }
+                ]
+              })
           ]
       })
       serveStatic('./dist-test')
