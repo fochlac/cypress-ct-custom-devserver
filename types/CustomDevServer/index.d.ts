@@ -21,7 +21,7 @@ declare namespace CustomDevServer {
 
     interface LoadTestUtils {
         loadBundle: (absolutePath: string) => void
-        injectHTML: (html: string, anchor?: string) => void
+        injectHTML: (html: string, anchor?: 'head'|'body') => void
     }
 
     interface BuildCallbackResult {

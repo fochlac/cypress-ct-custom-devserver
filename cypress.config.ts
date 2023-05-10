@@ -52,7 +52,7 @@ export default defineConfig({
 
               loadBundle(testPath)
               injectHTML('<div data-test="injection-body"></div>', 'body')
-              injectHTML('<div data-test="injection-head"></div>')
+              injectHTML('<meta data-test="injection-head"></div>')
           },
           onSpecChange: async (newSpecs) => {
               await ctx.dispose()

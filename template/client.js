@@ -1,4 +1,4 @@
-/* eslint-env browser */
+/* eslint-env browser *//* global bundles */
 // This file is merged in a <script type=module> into index.html
 // it will be used to load and kick start the selected spec
 
@@ -8,28 +8,8 @@ if (!CypressInstance) {
     throw new Error('Tests cannot run without a reference to Cypress!')
 }
 
-const devServerPublicPathRoute = CypressInstance.config('devServerPublicPathRoute')
-
-const fetchSpecData = async () => {
-    const { bundles = [], htmlSnippets = [] } = await fetch(`${devServerPublicPathRoute}/scriptInfo`, {
-        method: 'post',
-        headers: {
-            accept: 'application/json',
-            'content-type': 'application/json'
-        },
-        body: JSON.stringify({
-            spec: CypressInstance.spec
-        })
-    })
-        .then((r) => r.json())
-    
+const fetchSpecData = async () => {    
     await bundles.reduce((promise, path) => promise.then(() => import(path)), Promise.resolve())
-
-    htmlSnippets.forEach((snippet) => {
-        const anchor = snippet.anchor || 'head'
-        const anchorElement = document.querySelector(anchor)
-        anchorElement.innerHTML += snippet.html
-    })
 }
 
 CypressInstance.onSpecWindow(window, [fetchSpecData])
