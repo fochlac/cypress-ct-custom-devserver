@@ -51,7 +51,7 @@ const devServer = createCustomDevServer(async ({ onBuildComplete, onBuildStart, 
 
             // per default html is injected at the end of the head element
             injectHTML('<style>body {background: red}</style>')
-            // but you can also specify a selector for a different element. The html will be appended to the first matching element.
+            // but you can also specify whether to use head or body. The html will be appended at the end of the element.
             injectHTML('<div class="portal"></div>', 'body')
         },
         // this callback will be called every time new tests are added or removed
