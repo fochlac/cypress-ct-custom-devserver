@@ -1,6 +1,6 @@
 {
   "name": "cypress-ct-custom-devserver",
-  "version": "1.0.5",
+  "version": "1.0.6",
   "description": "A helper to simplify the api for creating a custom dev-server for cypress.",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -10,7 +10,7 @@
   ],
   "scripts": {
     "build": "npm run lint && tsc",
-    "prepublish": "npm run build",
+    "prepublishOnly": "npm run build",
     "lint": "eslint --ext .ts --fix src/**/*.ts",
     "test": "cypress run --component",
     "test:open": "cypress open --component"
