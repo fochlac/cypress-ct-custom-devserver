@@ -29,6 +29,7 @@ declare namespace CustomDevServer {
         onSpecChange?: (newSpecs: Cypress.Spec[]) => Promise<void> | void
         devServerPort?: number
         onClose?: () => Promise<void> | void
+        logFunction?: (logLevel: number, ...params: (string|number)[]) => void
     }
 
     interface DevServerOptions {

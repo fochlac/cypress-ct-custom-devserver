@@ -65,7 +65,11 @@ const devServer = createCustomDevServer(async ({ onBuildComplete, onBuildStart, 
         })
         },
         // you can provide a custom port for the dev-server to use. default is 0, which means pick a random port
-        devServerPort: 0
+        devServerPort: 0,
+        // you can provide a callback to gracefully shut down your dev server once cypress shuts down.
+        onClose: () => onClose(),
+        // you can provide a logging function, lowest loglevel is 6
+        logFunction: (logLevel, ...messages) => logLevel > 4 && console.log(...messages) 
     }
 })
 
