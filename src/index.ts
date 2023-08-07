@@ -55,6 +55,14 @@ export function createCustomDevServer(initBuildCallback: CustomDevServer.InitBui
 
         const app = express()
 
+        // wait for build to be finished before serving files
+        app.use(async (_req, _res, next) => {
+            log(6, 'Stalling request, waiting for rebuild to finish...')
+            if (isBuilding) await isBuilding
+            log(6, 'Rebuild finished, continue request.')
+            next()
+        })
+
         const { onSpecChange, loadTest, devServerPort, onClose, logFunction } = await initBuildCallback({
                 cypressConfig,
                 specs,
@@ -85,8 +93,9 @@ export function createCustomDevServer(initBuildCallback: CustomDevServer.InitBui
                 },
 
                 serveStatic: (folder, path = '/') => {
-                    app.use(path, express.static(folder))
+                    log(6, `Adding static route from '${path}' to folder '${folder}'.`)
                     app.use(`${cypressConfig.devServerPublicPathRoute}/${path}`.replaceAll('//', '/'), express.static(folder))
+                    app.use(path, express.static(folder))
                 }
             })
 
@@ -99,12 +108,6 @@ export function createCustomDevServer(initBuildCallback: CustomDevServer.InitBui
             } else {
                 log(3, 'Test files changed. Please restart the server.')
             }
-        })
-
-        // wait for build to be finished before serving files
-        app.use(async (_req, _res, next) => {
-            if (isBuilding) await isBuilding
-            next()
         })
 
         let lastTestBasePath
