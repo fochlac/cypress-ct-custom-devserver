@@ -56,8 +56,8 @@ export function createCustomDevServer(initBuildCallback: CustomDevServer.InitBui
         const app = express()
 
         const { onSpecChange, loadTest, devServerPort, onClose, logFunction } = await initBuildCallback({
+                cypressConfig,
                 specs,
-
                 supportFile: cypressConfig.supportFile && {
                     absolute: cypressConfig.supportFile,
                     relative: cypressConfig.supportFile.replace(cypressConfig.projectRoot, ''),

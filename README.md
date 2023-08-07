@@ -18,9 +18,10 @@ npm install -D cypress-ct-custom-devserver
 In your cypress config or in a seperate file setup the devServer as follows:
 
 ```js
-const devServer = createCustomDevServer(async ({ onBuildComplete, onBuildStart, specs, supportFile, serveStatic }) => {
+const devServer = createCustomDevServer(async ({ cypressConfig, onBuildComplete, onBuildStart, specs, supportFile, serveStatic }) => {
     // first you need to start your prefered build tool in watch mode
-    let onClose = await startBuildInWatchMode({
+    let onClose = await startBuild({
+        watchMode: cypressConfig.watchForFileChanges,
         entryPoints: [...specs.map((spec) => spec.absolute), supportFile && supportFile.absolute],
         onBuildComplete, // this needs to be called whenever the build is complete so cypress can restart the test.
         onBuildStart // if this callback is provided the api will wait until the build is finished before it serves the bundles.

@@ -12,6 +12,7 @@ declare namespace CustomDevServer {
     }
 
     interface BuildCallbackOptions {
+        cypressConfig: Cypress.PluginConfigOptions
         onBuildComplete: () => void
         onBuildStart: () => void
         specs: Cypress.Spec[]
