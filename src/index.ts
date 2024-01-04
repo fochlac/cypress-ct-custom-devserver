@@ -36,11 +36,11 @@ const pathToSpec = (relativePath: string, root: string): CustomDevServer.Browser
 }
 
 export function createCustomDevServer(initBuildCallback: CustomDevServer.InitBuildCallback) {
-    const createUrl = (path: string) => {
-        const externalUrlKey = crypto.createHash('md5').update(path).digest('hex')
-        const fileEnding = path.split('.').pop() || ''
+    const createUrl = (filePath: string) => {
+        const externalUrlKey = crypto.createHash('md5').update(filePath).digest('hex')
+        const basename = path.baseName(filePath)
 
-        return `${externalUrlKey}${fileEnding ? '.' + fileEnding : ''}`
+        return `${externalUrlKey}/${basename}`
     }
 
     return async ({ cypressConfig, specs, devServerEvents }: CustomDevServer.DevServerOptions): Promise<Cypress.ResolvedDevServerConfig> => {
@@ -185,9 +185,8 @@ export function createCustomDevServer(initBuildCallback: CustomDevServer.InitBui
                     return res.header('Content-Type', 'application/javascript; charset=UTF-8').send(data)
                 }
             }
-            catch (e) {
-                log(3, 'Unknown file or bad mapping: ', req.path)
-            }
+            catch (e) {}
+            log(3, 'Unknown file or bad mapping: ', req.path)
             res.status(404).send('Unknown file or bad mapping.')
         })
 
