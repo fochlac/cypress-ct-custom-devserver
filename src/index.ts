@@ -57,9 +57,11 @@ export function createCustomDevServer(initBuildCallback: CustomDevServer.InitBui
 
         // wait for build to be finished before serving files
         app.use(async (_req, _res, next) => {
-            log(6, 'Stalling request, waiting for rebuild to finish...')
-            if (isBuilding) await isBuilding
-            log(6, 'Rebuild finished, continue request.')
+            if (isBuilding) {
+                log(6, 'Stalling request, waiting for rebuild to finish...')
+                await isBuilding
+                log(6, 'Rebuild finished, continue request.')
+            }
             next()
         })
 
