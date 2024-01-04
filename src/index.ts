@@ -65,6 +65,7 @@ export function createCustomDevServer(initBuildCallback: CustomDevServer.InitBui
             next()
         })
 
+        let staticMappings = []
         const { onSpecChange, loadTest, devServerPort, onClose, logFunction } = await initBuildCallback({
                 cypressConfig,
                 specs,
@@ -95,13 +96,18 @@ export function createCustomDevServer(initBuildCallback: CustomDevServer.InitBui
                 },
 
                 serveStatic: (folder, path = '/') => {
-                    log(6, `Adding static route from '${path}' to folder '${folder}'.`)
-                    app.use(`${cypressConfig.devServerPublicPathRoute}/${path}`.replaceAll('//', '/'), express.static(folder))
-                    app.use(path, express.static(folder))
+                    staticMappings.push([folder, path])
                 }
             })
 
         log = (logLevel, ...messages) => typeof logFunction === 'function' && logFunction(logLevel, ...messages)
+
+        staticMappings.forEach(([folder, path]) => {
+            log(6, `Adding static route from '${path}' to folder '${folder}'.`)
+            app.use(`${cypressConfig.devServerPublicPathRoute}/${path}`.replaceAll('//', '/'), express.static(folder))
+            app.use(path, express.static(folder))
+
+        })
 
         devServerEvents.on('dev-server:specs:changed', (specs) => {
             if (typeof onSpecChange === 'function') {
