@@ -38,7 +38,7 @@ const pathToSpec = (relativePath: string, root: string): CustomDevServer.Browser
 export function createCustomDevServer(initBuildCallback: CustomDevServer.InitBuildCallback) {
     const createUrl = (filePath: string) => {
         const externalUrlKey = crypto.createHash('md5').update(filePath).digest('hex')
-        const basename = path.baseName(filePath)
+        const basename = path.basename(filePath)
 
         return `${externalUrlKey}/${basename}`
     }
@@ -185,7 +185,9 @@ export function createCustomDevServer(initBuildCallback: CustomDevServer.InitBui
                     return res.header('Content-Type', 'application/javascript; charset=UTF-8').send(data)
                 }
             }
-            catch (e) {}
+            catch (e) {
+                log(5, `Error accessing file '${req.path}': ${e.message}`)
+            }
             log(3, 'Unknown file or bad mapping: ', req.path)
             res.status(404).send('Unknown file or bad mapping.')
         })
