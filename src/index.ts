@@ -1,6 +1,5 @@
 import express from 'express'
 import path from 'path'
-import crypto from 'crypto'
 import { readFile } from 'fs/promises'
 import { AddressInfo } from 'net'
 import { minimatch } from 'minimatch'
@@ -19,8 +18,6 @@ const fallbackIndexHtml = `<!DOCTYPE html><html>
 <body><div data-cy-root></div></body>
 </html>`
 
-const sourceMapRegexp = /\/\/# sourceMappingURL=(.*).map/
-
 const pathToSpec = (relativePath: string, root: string): CustomDevServer.BrowserSpec => {
     const baseName = relativePath.split(path.sep).slice(-1)[0]
     return {
@@ -36,12 +33,7 @@ const pathToSpec = (relativePath: string, root: string): CustomDevServer.Browser
 }
 
 export function createCustomDevServer(initBuildCallback: CustomDevServer.InitBuildCallback) {
-    const createUrl = (filePath: string) => {
-        const externalUrlKey = crypto.createHash('md5').update(filePath).digest('hex')
-        const basename = path.basename(filePath)
-
-        return `${externalUrlKey}/${basename}`
-    }
+    const createUrl = (filePath: string) => filePath.split('\\').map(encodeURIComponent).join('/').replace(/^\//, '')
 
     return async ({ cypressConfig, specs, devServerEvents }: CustomDevServer.DevServerOptions): Promise<Cypress.ResolvedDevServerConfig> => {
         const specPatterns = (Array.isArray(cypressConfig.specPattern) ? cypressConfig.specPattern : [cypressConfig.specPattern])
@@ -51,7 +43,6 @@ export function createCustomDevServer(initBuildCallback: CustomDevServer.InitBui
         let isBuilding: false | Promise<void> = false
         let done = Function.prototype
         let log = Function.prototype
-        const bundleRegistry = new Map()
 
         const app = express()
 
@@ -65,40 +56,40 @@ export function createCustomDevServer(initBuildCallback: CustomDevServer.InitBui
             next()
         })
 
-        let staticMappings = []
+        const staticMappings = []
         const { onSpecChange, loadTest, devServerPort, onClose, logFunction } = await initBuildCallback({
-                cypressConfig,
-                specs,
-                supportFile: cypressConfig.supportFile && {
-                    absolute: cypressConfig.supportFile,
-                    relative: cypressConfig.supportFile.replace(cypressConfig.projectRoot, ''),
-                    name: path.basename(cypressConfig.supportFile),
-                    fileExtension: path.extname(cypressConfig.supportFile)
-                } as CustomDevServer.BrowserSpec,
+            cypressConfig,
+            specs,
+            supportFile: cypressConfig.supportFile && {
+                absolute: cypressConfig.supportFile,
+                relative: cypressConfig.supportFile.replace(cypressConfig.projectRoot, ''),
+                name: path.basename(cypressConfig.supportFile),
+                fileExtension: path.extname(cypressConfig.supportFile)
+            } as CustomDevServer.BrowserSpec,
 
-                onBuildComplete: () => {
-                    devServerEvents.emit('dev-server:compile:success')
-                    done()
-                },
+            onBuildComplete: () => {
+                devServerEvents.emit('dev-server:compile:success')
+                done()
+            },
 
-                onBuildStart: () => {
-                    if (isBuilding === false) {
-                        isBuilding = new Promise((resolve) => {
-                            log(5, 'Devserver signaled start of build. Stalling all requests.')
-                            done = () => {
-                                log(5, 'Devserver signaled end of build. Resuming all requests.')
-                                resolve()
-                                isBuilding = false
-                                done = Function.prototype
-                            }
-                        })
-                    }
-                },
-
-                serveStatic: (folder, path = '/') => {
-                    staticMappings.push([folder, path])
+            onBuildStart: () => {
+                if (isBuilding === false) {
+                    isBuilding = new Promise((resolve) => {
+                        log(5, 'Devserver signaled start of build. Stalling all requests.')
+                        done = () => {
+                            log(5, 'Devserver signaled end of build. Resuming all requests.')
+                            resolve()
+                            isBuilding = false
+                            done = Function.prototype
+                        }
+                    })
                 }
-            })
+            },
+
+            serveStatic: (folder, path = '/') => {
+                staticMappings.push([folder, path])
+            }
+        })
 
         log = (logLevel, ...messages) => typeof logFunction === 'function' && logFunction(logLevel, ...messages)
 
@@ -106,7 +97,6 @@ export function createCustomDevServer(initBuildCallback: CustomDevServer.InitBui
             log(6, `Adding static route from '${path}' to folder '${folder}'.`)
             app.use(`${cypressConfig.devServerPublicPathRoute}/${path}`.replaceAll('//', '/'), express.static(folder))
             app.use(path, express.static(folder))
-
         })
 
         devServerEvents.on('dev-server:specs:changed', (specs) => {
@@ -152,7 +142,6 @@ export function createCustomDevServer(initBuildCallback: CustomDevServer.InitBui
                     const url = `${cypressConfig.devServerPublicPathRoute}/${createUrl(path)}`
                     bundles.push(url)
                     log(5, `Bundle mapping: "${url}" to "${path}".`)
-                    bundleRegistry.set(url, { path })
                 },
                 injectHTML: (html, anchor = 'head') => {
                     if (!['head', 'body'].includes(anchor)) throw new Error('Only "head" and "body" are allowed as anchors.')
@@ -170,32 +159,6 @@ export function createCustomDevServer(initBuildCallback: CustomDevServer.InitBui
             })
 
             res.status(200).send(outString)
-        })
-
-        app.get(`${cypressConfig.devServerPublicPathRoute}/*`, async (req, res) => {
-            try {
-                if (/.map$/.test(req.path)) {
-                    const basePath = req.path.replace(/.map$/, '')
-                    const { path } = bundleRegistry.get(basePath) ?? {}
-                    if (path) {
-                        return res.sendFile(path + '.map')
-                    }
-                }
-                const { path } = bundleRegistry.get(req.path) ?? {}
-                if (path) {
-                    let data = await readFile(path, 'utf8');
-                    if (sourceMapRegexp.test(data)) {
-                        data = data.replace(sourceMapRegexp, `//# sourceMappingURL=${req.path}.map`)
-                    }
-
-                    return res.header('Content-Type', 'application/javascript; charset=UTF-8').send(data)
-                }
-            }
-            catch (e) {
-                log(5, `Error accessing file '${req.path}': ${e.message}`)
-            }
-            log(3, 'Unknown file or bad mapping: ', req.path)
-            res.status(404).send('Unknown file or bad mapping.')
         })
 
         app.use('*', (req, res) => {

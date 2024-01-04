@@ -36,18 +36,21 @@ const devServer = createCustomDevServer(async ({ cypressConfig, onBuildComplete,
     return {
         // This callback is triggered when Cypress requests the bundle for a test.
         // The spec-parameter contains information about which test the bundle is requested for.
-        // You can use the loadBundle function to import js files. The sequence of imports will be preserved.
+        // You can use the loadBundle function to import js files. The files need to be made available via serve static.
+        // The path you provide should match the url the file has on the server. The sequence of imports will be preserved.
         // You can also inject html into the head or body using the injectHTML function. This can be used to inject i.e. styles.
+        // This should be used sparingly though, as cypress makes html-snapshots after each command. Too large index.html files
+        // will slow down your tests.
         loadTest: async (spec, { loadBundle, injectHTML }) => {
             // if you want to load the support bundle you need to do it before the test-bundle
             if (supportFile) {
-                const supportPath = path.resolve(path.join(outdir, supportFile.relative))
-                loadBundle(supportPath)
+                loadBundle(supportFile.relative)
             }
 
             // The path on the spec-object will have the original file extension. If the extension changed
-            // during bundling you might have to adapt the path accordingly. You need to provide an absolute path to the file.
-            const testPath = path.resolve(path.join(outdir, spec.relative.replace(spec?.fileExtension, '.js')))
+            // during bundling you might have to adapt the path accordingly. You need to provide the 
+            // relative path to the file as you serve it via serveStatic. 
+            const testPath = spec.relative.replace(spec?.fileExtension, '.js')
             loadBundle(testPath)
 
             // per default html is injected at the end of the head element
