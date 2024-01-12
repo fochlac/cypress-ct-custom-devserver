@@ -22,7 +22,8 @@ declare namespace CustomDevServer {
 
     interface LoadTestUtils {
         loadBundle: (absolutePath: string) => void
-        injectHTML: (html: string, anchor?: 'head'|'body') => void
+        injectHTML: (html: string, anchor?: 'head' | 'body') => void
+        transformHTML: (html: string) => string
     }
 
     interface BuildCallbackResult {
@@ -30,7 +31,7 @@ declare namespace CustomDevServer {
         onSpecChange?: (newSpecs: Cypress.Spec[]) => Promise<void> | void
         devServerPort?: number
         onClose?: () => Promise<void> | void
-        logFunction?: (logLevel: number, ...params: (string|number)[]) => void
+        logFunction?: (logLevel: number, ...params: (string | number)[]) => void
     }
 
     interface DevServerOptions {
@@ -39,5 +40,5 @@ declare namespace CustomDevServer {
         devServerEvents: NodeJS.EventEmitter
     }
 
-    type InitBuildCallback = (options: BuildCallbackOptions) => BuildCallbackResult|Promise<BuildCallbackResult>
+    type InitBuildCallback = (options: BuildCallbackOptions) => BuildCallbackResult | Promise<BuildCallbackResult>
 }

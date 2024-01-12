@@ -3,20 +3,8 @@ import path from 'path'
 import { readFile } from 'fs/promises'
 import { AddressInfo } from 'net'
 import { minimatch } from 'minimatch'
+import { createLoadTestUtils } from './util'
 
-const clientScript = (bundles) => `
-    const bundles = ${JSON.stringify(bundles)}
-    const CypressInstance = (window.Cypress = parent.Cypress)
-    if (!CypressInstance) {
-        throw new Error('Tests cannot run without a reference to Cypress!')
-    }
-    CypressInstance.onSpecWindow(window, [() => bundles.reduce((promise, path) => promise.then(() => import(path)), Promise.resolve())])
-    CypressInstance.action('app:window:before:load', window)
-`
-const fallbackIndexHtml = `<!DOCTYPE html><html>
-<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"></head>
-<body><div data-cy-root></div></body>
-</html>`
 
 const pathToSpec = (relativePath: string, root: string): CustomDevServer.BrowserSpec => {
     const baseName = relativePath.split(path.sep).slice(-1)[0]
@@ -33,7 +21,6 @@ const pathToSpec = (relativePath: string, root: string): CustomDevServer.Browser
 }
 
 export function createCustomDevServer(initBuildCallback: CustomDevServer.InitBuildCallback) {
-    const createUrl = (filePath: string) => filePath.split(/[/\\]+/).map(encodeURIComponent).join('/').trim().replace(/^\//, '')
 
     return async ({ cypressConfig, specs, devServerEvents }: CustomDevServer.DevServerOptions): Promise<Cypress.ResolvedDevServerConfig> => {
         const specPatterns = (Array.isArray(cypressConfig.specPattern) ? cypressConfig.specPattern : [cypressConfig.specPattern])
@@ -127,7 +114,7 @@ export function createCustomDevServer(initBuildCallback: CustomDevServer.InitBui
             }
             log(4, `Index.html requested for test ${testPath}`)
 
-            let html = fallbackIndexHtml
+            let html = ''
             try {
                 html = await readFile(path.join(cypressConfig.projectRoot, cypressConfig.indexHtmlFile), 'utf8')
             }
@@ -135,30 +122,11 @@ export function createCustomDevServer(initBuildCallback: CustomDevServer.InitBui
                 log(3, 'Index.html missing.')
             }
 
-            const bundles: string[] = []
-            const htmlSnippets: { html: string, anchor?: string }[] = []
-            const utils: CustomDevServer.LoadTestUtils = {
-                loadBundle: (path) => {
-                    const url = `${cypressConfig.devServerPublicPathRoute}/${createUrl(path)}`
-                    bundles.push(url)
-                    log(5, `Bundle mapping: "${url}" to "${path}".`)
-                },
-                injectHTML: (html, anchor = 'head') => {
-                    if (!['head', 'body'].includes(anchor)) throw new Error('Only "head" and "body" are allowed as anchors.')
-                    htmlSnippets.push({ html, anchor })
-                }
-            }
+            const utils = createLoadTestUtils(cypressConfig.devServerPublicPathRoute, log)
 
             await loadTest(pathToSpec(testPath, cypressConfig.projectRoot), utils)
 
-            // inject the kickstart script
-            let outString = html.replace('</head>', `<script type="module">${clientScript(bundles)}</script></head>`)
-
-            htmlSnippets.forEach(({ html, anchor }) => {
-                outString = outString.replace(`</${anchor}>`, `${html}</${anchor}>`)
-            })
-
-            res.status(200).send(outString)
+            res.status(200).send(utils.transformHTML(html))
         })
 
         app.use('*', (req, res) => {
