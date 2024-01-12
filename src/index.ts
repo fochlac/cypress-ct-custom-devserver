@@ -33,7 +33,7 @@ const pathToSpec = (relativePath: string, root: string): CustomDevServer.Browser
 }
 
 export function createCustomDevServer(initBuildCallback: CustomDevServer.InitBuildCallback) {
-    const createUrl = (filePath: string) => filePath.split('\\').map(encodeURIComponent).join('/').replace(/^\//, '')
+    const createUrl = (filePath: string) => filePath.split(/[/\\]+/).map(encodeURIComponent).join('/').trim().replace(/^\//, '')
 
     return async ({ cypressConfig, specs, devServerEvents }: CustomDevServer.DevServerOptions): Promise<Cypress.ResolvedDevServerConfig> => {
         const specPatterns = (Array.isArray(cypressConfig.specPattern) ? cypressConfig.specPattern : [cypressConfig.specPattern])
