@@ -21,7 +21,7 @@ const pathToSpec = (relativePath: string, root: string): CustomDevServer.Browser
 }
 
 const hasStringArrayContentChanged = (oldList, newList) => {
-    return oldList.length === newList.length && new Set([].concat(oldList, newList)).size !== oldList.length
+    return oldList.length !== newList.length || new Set([].concat(oldList, newList)).size !== oldList.length
 }
 
 export function createCustomDevServer(initBuildCallback: CustomDevServer.InitBuildCallback) {
