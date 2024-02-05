@@ -20,6 +20,10 @@ const pathToSpec = (relativePath: string, root: string): CustomDevServer.Browser
     } as CustomDevServer.BrowserSpec
 }
 
+const hasStringArrayContentChanged = (oldList, newList) => {
+    return oldList.length === newList.length && new Set([].concat(oldList, newList)).size !== oldList.length
+}
+
 export function createCustomDevServer(initBuildCallback: CustomDevServer.InitBuildCallback) {
 
     return async ({ cypressConfig, specs, devServerEvents }: CustomDevServer.DevServerOptions): Promise<Cypress.ResolvedDevServerConfig> => {
@@ -86,12 +90,17 @@ export function createCustomDevServer(initBuildCallback: CustomDevServer.InitBui
             app.use(path, express.static(folder))
         })
 
+        let lastSpecs = specs.map(spec => spec.relative)
         devServerEvents.on('dev-server:specs:changed', (specs) => {
-            if (typeof onSpecChange === 'function') {
-                log(5, 'Test files changed. Rebuilding...')
-                onSpecChange(specs)
-            } else {
-                log(3, 'Test files changed. Please restart the server.')
+            const currentSpecPaths = specs.map(spec => spec.relative)
+            if (hasStringArrayContentChanged(lastSpecs, currentSpecPaths)) {
+                lastSpecs = currentSpecPaths
+                if (typeof onSpecChange === 'function') {
+                    log(5, 'Test files changed. Rebuilding...')
+                    onSpecChange(specs)
+                } else {
+                    log(3, 'Test files changed. Please restart the server.')
+                }
             }
         })
 
