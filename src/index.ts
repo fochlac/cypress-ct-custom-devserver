@@ -84,10 +84,20 @@ export function createCustomDevServer(initBuildCallback: CustomDevServer.InitBui
 
         log = (logLevel, ...messages) => typeof logFunction === 'function' && logFunction(logLevel, ...messages)
 
-        staticMappings.forEach(([folder, path]) => {
+        const logger = (req, _res, next) => {
+            log(7, `Checking request for static ressource: '${req.url}'`)
+            next()
+        }
+        staticMappings.forEach(([folder, publicPath]) => {
+            const setHeaders = (_response, file_path) => {
+                log(6, `Serving static file: '${path.relative(folder, file_path)}'.`)
+            }
             log(6, `Adding static route from '${path}' to folder '${folder}'.`)
-            app.use(`${cypressConfig.devServerPublicPathRoute}/${path}`.replaceAll('//', '/'), express.static(folder))
-            app.use(path, express.static(folder))
+            const staticRouter = express.static(folder, { setHeaders })
+            const cypressSrcPath = `${cypressConfig.devServerPublicPathRoute}/${publicPath}`.replaceAll('//', '/')
+
+            app.use(publicPath, logger, staticRouter)
+            app.use(cypressSrcPath, logger, staticRouter)
         })
 
         let lastSpecs = specs.map(spec => spec.relative)
