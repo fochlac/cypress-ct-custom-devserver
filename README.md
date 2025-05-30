@@ -3,6 +3,13 @@
 # cypress-ct-custom-devserver
 A helper for setting up Cypress devServers for component testing.
 
+## Compatibility
+
+| Package Version | Cypress Version |
+|-----------------|-----------------|
+| < 2.0           | < 14, > 12      |
+| >= 2.1          | > 12            |
+
 ## Description
 
 This library offers a framework to abstract some of the difficulties regarding setting up a custom Cypress dev-server for component testing. Namely this library will setup an express server for delivering your bundled code and provide you with a clean api for setting up your build tools. 

@@ -97,11 +97,12 @@ export function createCustomDevServer(initBuildCallback: CustomDevServer.InitBui
             const cypressSrcPath = `${cypressConfig.devServerPublicPathRoute}/${publicPath}`.replaceAll('//', '/')
 
             app.use(publicPath, logger, staticRouter)
-            app.use(cypressSrcPath, logger, staticRouter)
-        })
+            app.use(cypressSrcPath, logger, staticRouter)        })
 
         let lastSpecs = specs.map(spec => spec.relative)
-        devServerEvents.on('dev-server:specs:changed', (specs) => {
+        devServerEvents.on('dev-server:specs:changed', (eventData) => {
+            // Handle both Cypress < 14 (eventData is specs array) and >= 14 (eventData.specs is specs array)
+            const specs = Array.isArray(eventData) ? eventData : eventData.specs
             const currentSpecPaths = specs.map(spec => spec.relative)
             if (hasStringArrayContentChanged(lastSpecs, currentSpecPaths)) {
                 lastSpecs = currentSpecPaths
