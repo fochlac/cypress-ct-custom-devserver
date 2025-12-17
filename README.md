@@ -70,10 +70,13 @@ const devServer = createCustomDevServer(async ({ cypressConfig, onBuildComplete,
         onSpecChange: async (newSpecs) => {
             await onClose()
             onClose = await startBuildInWatchMode({
-            entryPoints: [...newSpecs.map((spec) => spec.absolute), supportFile && supportFile.absolute],
-            onBuildComplete,
-            onBuildStart
-        })
+                entryPoints: [...newSpecs.map((spec) => spec.absolute), supportFile && supportFile.absolute],
+                onBuildComplete,
+                onBuildStart
+            })
+        },
+        onJustInTimeComplileRequest: async (event) => {
+            await build(event.specs[0])
         },
         // you can provide a custom port for the dev-server to use. default is 0, which means pick a random port
         devServerPort: 0,

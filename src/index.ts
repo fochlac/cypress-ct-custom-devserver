@@ -48,7 +48,7 @@ export function createCustomDevServer(initBuildCallback: CustomDevServer.InitBui
         })
 
         const staticMappings = []
-        const { onSpecChange, loadTest, devServerPort, onClose, logFunction } = await initBuildCallback({
+        const { onSpecChange, onJustInTimeComplileRequest, loadTest, devServerPort, onClose, logFunction } = await initBuildCallback({
             cypressConfig,
             specs,
             supportFile: cypressConfig.supportFile && {
@@ -100,9 +100,26 @@ export function createCustomDevServer(initBuildCallback: CustomDevServer.InitBui
             app.use(cypressSrcPath, logger, staticRouter)        })
 
         let lastSpecs = specs.map(spec => spec.relative)
-        devServerEvents.on('dev-server:specs:changed', (eventData) => {
+        devServerEvents.on('dev-server:specs:changed', async (eventData) => {
+
+            if (eventData?.options?.neededForJustInTimeCompile) {
+                if (typeof onJustInTimeComplileRequest === 'function' && eventData.specs?.length) {
+                    log(5, 'Just in time build-request: Requesting build...', eventData.specs[0].name)
+                    try {
+                        await onJustInTimeComplileRequest(eventData)
+                        log(5, 'Just in time build-request: Build successful.')
+                    }
+                    catch {
+                        log(1, 'Just in time compile failed.')
+                    }
+                    devServerEvents.emit('dev-server:compile:success')
+                }
+                return
+            }
+
             // Handle both Cypress < 14 (eventData is specs array) and >= 14 (eventData.specs is specs array)
             const specs = Array.isArray(eventData) ? eventData : eventData.specs
+
             const currentSpecPaths = specs.map(spec => spec.relative)
             if (hasStringArrayContentChanged(lastSpecs, currentSpecPaths)) {
                 lastSpecs = currentSpecPaths

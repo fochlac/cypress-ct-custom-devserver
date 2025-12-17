@@ -29,6 +29,7 @@ declare namespace CustomDevServer {
     interface BuildCallbackResult {
         loadTest: (spec: BrowserSpec, utils: LoadTestUtils) => Promise<void> | void
         onSpecChange?: (newSpecs: Cypress.Spec[]) => Promise<void> | void
+        onJustInTimeComplileRequest?: (event: { specs: Cypress.Spec[], options: { neededForJustInTimeCompile: boolean } }) => Promise<void> | void
         devServerPort?: number
         onClose?: () => Promise<void> | void
         logFunction?: (logLevel: number, ...params: (string | number)[]) => void
